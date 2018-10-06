@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const stream_1 = __importDefault(require("stream"));
 function compose(middlewares) {
     if (!Array.isArray(middlewares))
         throw new TypeError('Middleware stack must be an array!');
@@ -28,4 +32,14 @@ function compose(middlewares) {
         return dispatch(0);
     };
 }
-exports.default = compose;
+exports.compose = compose;
+exports.isString = (val) => typeof val === 'string';
+exports.isFuntion = (val) => typeof val === 'function';
+exports.isError = (val) => val instanceof Error;
+exports.isStream = (val) => val instanceof stream_1.default;
+exports.isType = {
+    string: exports.isString,
+    function: exports.isFuntion,
+    error: exports.isError,
+    stream: exports.isStream
+};

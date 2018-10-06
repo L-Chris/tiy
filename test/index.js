@@ -3,8 +3,11 @@ const Tiy = require('../dist').default
 const app = new Tiy()
 
 app.use(async (ctx, next) => {
-  const res = ctx.response.res
-  res.end('123')
+  const { response, request } = ctx
+  console.log(request.headers)
+  console.log(request.method)
+
+  ctx.response.res.end('123')
 })
 
-app.listen(3000)
+app.listen(3002)

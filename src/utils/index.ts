@@ -1,6 +1,7 @@
-import TiyContext from "../core/Context"
+import Stream from 'stream'
+import { TiyContext } from 'global'
 
-export default function compose (middlewares: Array<Function>) {
+export function compose (middlewares: Array<Function>) {
   if (!Array.isArray(middlewares)) throw new TypeError('Middleware stack must be an array!')
   for (const fn of middlewares) {
     if (typeof fn !== 'function') throw new TypeError('Middleware must be composed of functions!')
@@ -23,4 +24,16 @@ export default function compose (middlewares: Array<Function>) {
 
     return dispatch(0)
   }
+}
+
+export const isString = (val: any) => typeof val === 'string'
+export const isFuntion = (val: any) => typeof val === 'function'
+export const isError = (val: any) => val instanceof Error
+export const isStream = (val: any) => val instanceof Stream
+
+export const isType = {
+  string: isString,
+  function: isFuntion,
+  error: isError,
+  stream: isStream
 }

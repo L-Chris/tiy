@@ -1,11 +1,10 @@
 import http, { Server, IncomingMessage, ServerResponse } from 'http'
 import Emitter from 'events'
-import Stream from 'stream'
 import statuses from 'statuses'
 import TiyContext from './Context'
 import TiyRequest from './Request'
 import TiyResponse from './Response'
-import compose from '../utils'
+import { compose, isType } from '../utils'
 
 class Tiy extends Emitter {
   private middlewares: Array<Function>
@@ -27,7 +26,7 @@ class Tiy extends Emitter {
   }
 
   use (fn: Function): this {
-    if (typeof fn !== 'function') throw new TypeError('middleware must be a function!')
+    if (!isType.function(fn)) throw new TypeError('middleware must be a function!')
     this.middlewares.push(fn)
     return this
   }
@@ -54,18 +53,17 @@ class Tiy extends Emitter {
   }
 
   handleResponse (ctx: TiyContext) {
-    const { res } = ctx.response
-    const { statusCode } = res
+    const { res, status } = ctx.response
     let body: any
 
-    if (statuses.empty[statusCode]) {
+    if (statuses.empty[status]) {
       body = null
       return res.end()
     }
 
     if (Buffer.isBuffer(body)) return res.end(body)
-    if (typeof body === 'string') return res.end(body)
-    if (body instanceof Stream) return body.pipe(res)
+    if (isType.string(body)) return res.end(body)
+    if (isType.stream(body)) return body.pipe(res)
 
     body = JSON.stringify(body)
 
@@ -73,12 +71,12 @@ class Tiy extends Emitter {
   }
 
   handleError (err: any) {
-    if (!(err instanceof Error)) throw new TypeError('non-error thrown: %j')
+    if (!isType.error(err)) throw new TypeError('non-error thrown: %j')
 
     const msg = err.stack || err.toString()
-    console.error();
+    console.error()
     console.error(msg.replace(/^/gm, '  '))
-    console.error();
+    console.error()
   }
 
   createContext (req: IncomingMessage, res: ServerResponse): TiyContext {

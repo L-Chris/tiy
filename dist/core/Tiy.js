@@ -5,12 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const http_1 = __importDefault(require("http"));
 const events_1 = __importDefault(require("events"));
-const stream_1 = __importDefault(require("stream"));
 const statuses_1 = __importDefault(require("statuses"));
 const Context_1 = __importDefault(require("./Context"));
 const Request_1 = __importDefault(require("./Request"));
 const Response_1 = __importDefault(require("./Response"));
-const utils_1 = __importDefault(require("../utils"));
+const utils_1 = require("../utils");
 class Tiy extends events_1.default {
     constructor() {
         super();
@@ -24,13 +23,13 @@ class Tiy extends events_1.default {
         return server.listen(...args);
     }
     use(fn) {
-        if (typeof fn !== 'function')
+        if (!utils_1.isType.function(fn))
             throw new TypeError('middleware must be a function!');
         this.middlewares.push(fn);
         return this;
     }
     callback() {
-        const fn = utils_1.default(this.middlewares);
+        const fn = utils_1.compose(this.middlewares);
         if (!this.listenerCount('error'))
             this.on('error', this.handleError);
         const handleRequest = (req, res) => {
@@ -47,24 +46,23 @@ class Tiy extends events_1.default {
         });
     }
     handleResponse(ctx) {
-        const { res } = ctx.response;
-        const { statusCode } = res;
+        const { res, status } = ctx.response;
         let body;
-        if (statuses_1.default.empty[statusCode]) {
+        if (statuses_1.default.empty[status]) {
             body = null;
             return res.end();
         }
         if (Buffer.isBuffer(body))
             return res.end(body);
-        if (typeof body === 'string')
+        if (utils_1.isType.string(body))
             return res.end(body);
-        if (body instanceof stream_1.default)
+        if (utils_1.isType.stream(body))
             return body.pipe(res);
         body = JSON.stringify(body);
         res.end(body);
     }
     handleError(err) {
-        if (!(err instanceof Error))
+        if (!utils_1.isType.error(err))
             throw new TypeError('non-error thrown: %j');
         const msg = err.stack || err.toString();
         console.error();
